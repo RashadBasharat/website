@@ -4,12 +4,23 @@ import pymongo
 from django.views.decorators.csrf import csrf_exempt
 import json
 from pprint import pprint
+from twilio.rest import Client
 
 client = pymongo.MongoClient("mongodb+srv://admin:iZhYxwEzN42AXEv@cluster0-xg3ry.gcp.mongodb.net/test?retryWrites=true&w=majority")
 
 db = client["durhack"]
 
 def test(r):
+    account_sid = 'ACd7fc78a7a6fe616a608cd80051eece69'
+    auth_token = '620ec993aefc6846d418b2a0219597de'
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        body='Hi there!',
+        from_='+441296827003',
+        to='+447895368305'
+    )
+    print(message.sid)
     return JsonResponse({
         "hello": "World"
     })
@@ -32,10 +43,10 @@ def create_user(r):
     if docs.count() == 0:
         print("No user found, creating")
         d = {
-            "firebaseToken": firebaseId,
             "applications": []
         }
         db["users"].insert({
+            "firebaseToken": firebaseId,
             "applications": []
         })
         return JsonResponse(d)
@@ -63,6 +74,7 @@ def add_application(r):
         "howWillUse": j["howWillUse"],
         "reason": j["reason"],
         "howWillRepay": j["howWillRepay"],
+        "state": "pending"
     } } }
 
     db.users.update_one({"firebaseToken": firebaseId}, newvalues)
@@ -73,3 +85,17 @@ def add_application(r):
         "applications": user["applications"]
     })
     
+
+@csrf_exempt
+def new_user(r):
+    print(r.body)
+    return JsonResponse({
+        "hello": "World"
+    })
+
+@csrf_exempt
+def status(r):
+    print(r.body)
+    return JsonResponse({
+        "hello": "World"
+    })
